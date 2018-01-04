@@ -84,7 +84,7 @@ object MyRouteMain {
         val sc = spark.sparkContext
         val fileSystem = FileSystem.get(sc.hadoopConfiguration)
         val sourceFiles = c.inputDate.map(x => new Path(c.rootPath, "TRAFF_" + x)).map(p => fileSystem.listStatus(p).filter(l => !l.getPath.getName.equals("Group")).map(a => a.getPath.toString)).flatten
-        val processRdds = sourceFiles.map(f => sc.textFile(f))
+        val processRdds = sourceFiles.map(f => sc.textFile(f).mapPartitionsWithIndex((idx, iter) => if (c.hasTitle && (idx == 0)) iter.drop(1) else iter))
         val processRdd = sc.union(processRdds)
         val srouceCount = processRdd.count()
 
